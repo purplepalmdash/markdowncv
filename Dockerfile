@@ -1,18 +1,26 @@
-# Based on Ubuntu 14.04
-FROM ubuntu:trusty
+# Based on Debian Wheezy
+FROM debian:wheezy
 
 # Install Packages, via apt-get. 
 RUN apt-get update && apt-get install -y \
-	build-essential \
-	pandoc \
-	wkhtmltopdf \
-	xvfb \
-	ttf-wqy-zenhei \
-	git \
-	rubygems-integration \
-	ruby-dev \
-	libimage-exiftool-perl \
-	python-twisted
+        build-essential \
+        cabal-install \
+        wkhtmltopdf \
+        xvfb \
+        ttf-wqy-zenhei \
+        git \
+        rubygems-integration \
+        ruby-dev \
+        libimage-exiftool-perl \
+	zlib1g-dev \
+	libdigest-perl \
+        python-twisted && rm -rf /var/lib/apt/lists/*
+
+# Via cabal for installing pandoc, latest one will have the markdown plugins
+RUN cabal update && cabal install pandoc
+
+# After install pandoc via cabal, update the $PATH
+ENV PATH /root/.cabal/bin:$PATH
 
 # Now Change wkhtmltopdf
 RUN echo 'xvfb-run --server-args="-screen 0, 1024x768x24" /usr/bin/wkhtmltopdf $*' > /usr/bin/wkhtmltopdf.sh
