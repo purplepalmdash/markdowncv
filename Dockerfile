@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y \
 	git \
 	rubygems-integration \
 	ruby-dev \
-	libimage-exiftool-perl 
+	libimage-exiftool-perl \
+	python-twisted
 
 # Now Change wkhtmltopdf
 RUN echo 'xvfb-run --server-args="-screen 0, 1024x768x24" /usr/bin/wkhtmltopdf $*' > /usr/bin/wkhtmltopdf.sh
@@ -24,6 +25,12 @@ RUN gem install compass
 RUN gem install susy
 
 # Git Clone the CV FrameWork from github.
-RUN mkdir -p /root/Code/
-RUN git clone https://github.com/barraq/pandoc-moderncv.git  /root/Code/pandoc-moderncv
-RUN mkdir -p /root/Code/pandoc-moderncv/cv/images
+RUN mkdir -p /opt/Code/
+RUN git clone https://github.com/barraq/pandoc-moderncv.git  /opt/Code/pandoc-moderncv
+
+# Now begin to build the cv, using the demo 'scaffold'
+RUN cd /opt/Code/pandoc-moderncv/ && make scaffold && make pdf HTMLTOPDF=wkhtmltopdf
+
+# Run http server on server 5177, since in dist/ folder we will have the html and pdf
+EXPOSE 5177
+CMD ["twistd", "-n", "web", "-p", "5177", "--path", "/opt/Code/pandoc-moderncv/dist/"]
